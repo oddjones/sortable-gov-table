@@ -1,0 +1,124 @@
+{% extends "layout.njk" %}
+
+{% block pageTitle %}
+  Sortable table with radio buttons
+{% endblock %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h1 class="govuk-heading-xl">Sortable table with radio buttons</h1>
+
+            {% set selectedValue = query.selected | default('') %}
+            {% if selectedValue %}
+                <div class="govuk-inset-text" style="background-color: #f3f2f1; border-left: 0; margin-bottom: 30px;">
+                Selected item: Item {{ selectedValue }}
+                </div>
+            {% endif %}
+
+            <div class="moj-scrollable-pane">
+                <div class="moj-scrollable-pane__wrapper">
+                    <table class="govuk-table moj-table moj-table--sortable" data-module="moj-sortable-table">
+                        <thead class="govuk-table__head">
+                            <tr class="govuk-table__row">
+                                <th scope="col" class="govuk-table__header" aria-sort="none">Select</th>
+                                <th scope="col" class="govuk-table__header" aria-sort="none">Name</th>
+                                <th scope="col" class="govuk-table__header" aria-sort="none">Date</th>
+                                <th scope="col" class="govuk-table__header" aria-sort="none">Status</th>
+                                <th scope="col" class="govuk-table__header" aria-sort="none">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="govuk-table__body">
+                            {% set currentPage = query.page | default(1) | int %}
+                            {% set itemsPerPage = 10 %}
+                            {% set startIndex = (currentPage - 1) * itemsPerPage %}
+                            {% set endIndex = startIndex + itemsPerPage %}
+                            {% set totalItems = 50 %}
+                            {% set totalPages = (totalItems / itemsPerPage) | round(0, 'ceil') %}
+                            {% set today = "now" | date("YYYY-MM-DD") %}
+
+                            {% for i in range(startIndex + 1, endIndex + 1) %}
+                                {% if i <= totalItems %}
+                                    {% set daysToSubtract = (i - 1) * 7 %}
+                                    {% set itemDate = today | date("YYYY-MM-DD", daysToSubtract * -86400) %}
+                                    <tr class="govuk-table__row">
+                                        <td class="govuk-table__cell">
+                                            <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
+                                                <div class="govuk-radios__item">
+                                                    <input class="govuk-radios__input" id="select-{{ i }}" name="select" type="radio" value="{{ i }}" {% if selectedValue == i|string %}checked{% endif %}>
+                                                    <label class="govuk-label govuk-radios__label" for="select-{{ i }}">
+                                                        <span class="govuk-visually-hidden">Select row {{ i }}</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="govuk-table__cell">Item {{ i }}</td>
+                                        <td class="govuk-table__cell">{{ itemDate | date("DD MMMM YYYY") }}</td>
+                                        <td class="govuk-table__cell">
+                                            <strong class="govuk-tag govuk-tag--green">
+                                                Active
+                                            </strong>
+                                        </td>
+                                        <td class="govuk-table__cell">
+                                            <a href="#" class="govuk-link">View details</a>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="moj-pagination">
+                <div class="moj-pagination__results">
+                    {% set displayEnd %}
+                    {% if endIndex > totalItems %}
+                        {{ totalItems }}
+                    {% else %}
+                        {{ endIndex }}
+                    {% endif %}
+                    {% endset %}
+                    Showing <b>{{ startIndex + 1 }}</b> to <b>{{ displayEnd }}</b> of <b>{{ totalItems }}</b> results
+                </div>
+                <ul class="moj-pagination__list">
+                    {% if currentPage > 1 %}
+                        <li class="moj-pagination__item moj-pagination__item--prev">
+                            <a class="moj-pagination__link" href="?page={{ currentPage - 1 }}{% if selectedValue %}&selected={{ selectedValue }}{% endif %}">Previous<span class="govuk-visually-hidden"> set of pages</span></a>
+                        </li>
+                    {% endif %}
+
+                    {% for page in range(1, totalPages + 1) %}
+                        <li class="moj-pagination__item {% if page == currentPage %}moj-pagination__item--active{% endif %}">
+                            <a class="moj-pagination__link" href="?page={{ page }}{% if selectedValue %}&selected={{ selectedValue }}{% endif %}">{{ page }}</a>
+                        </li>
+                    {% endfor %}
+
+                    {% if currentPage < totalPages %}
+                        <li class="moj-pagination__item moj-pagination__item--next">
+                            <a class="moj-pagination__link" href="?page={{ currentPage + 1 }}{% if selectedValue %}&selected={{ selectedValue }}{% endif %}">Next<span class="govuk-visually-hidden"> set of pages</span></a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block pageScripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const radioButtons = document.querySelectorAll('input[type="radio"]');
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function () {
+                    const selectedValue = this.value;
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl
+                        .searchParams
+                        .set('selected', selectedValue);
+                    window.location.href = currentUrl.toString();
+                });
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,10 @@
+{
+  "serviceName": "Service name goes here",
+  "assetPath": "/public/",
+  "port": 3000,
+  "scripts": [
+    "node_modules/govuk-frontend/govuk/all.js",
+    "node_modules/@ministryofjustice/frontend/moj/all.js"
+  ],
+  "documentReady": true
+}
